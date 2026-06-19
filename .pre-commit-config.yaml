@@ -1,0 +1,107 @@
+# Конфигурация pre-commit hooks для rvc-modern
+# Установка: pre-commit install
+# Запуск вручную: pre-commit run --all-files
+# Обновление хуков: pre-commit autoupdate
+
+default_language_version:
+  python: python3.11
+
+repos:
+  # === Базовые хуки ===
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        name: "🧹 Trim trailing whitespace"
+      - id: end-of-file-fixer
+        name: "🧹 Fix end of file"
+      - id: check-yaml
+        name: "✅ Check YAML syntax"
+      - id: check-toml
+        name: "✅ Check TOML syntax"
+      - id: check-json
+        name: "✅ Check JSON syntax"
+      - id: check-added-large-files
+        name: "📏 Check large files (>1MB)"
+        args: ["--maxkb=1024"]
+      - id: check-merge-conflict
+        name: "🔀 Check merge conflicts"
+      - id: check-ast
+        name: "✅ Check Python AST"
+      - id: check-docstring-first
+        name: "📝 Check docstring first"
+      - id: debug-statements
+        name: "🐛 Detect debug statements"
+      - id: mixed-line-ending
+        name: "🧹 Fix mixed line endings"
+        args: ["--fix=lf"]
+
+  # === Ruff (линтер + форматтер) ===
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.7.0
+    hooks:
+      - id: ruff
+        name: "🔍 Ruff lint"
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+        name: "✨ Ruff format"
+
+  # === Mypy (проверка типов) ===
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        name: "🔎 Mypy type check"
+        files: ^src/rvc/
+        additional_dependencies:
+          - pydantic>=2.9.0
+          - pydantic-settings>=2.5.0
+          - types-requests
+          - types-PyYAML
+        args:
+          - --config-file=pyproject.toml
+
+  # === Проверка дубликатов ===
+  - repo: local
+    hooks:
+      - id: check-duplicates
+        name: "🔁 Check duplicate files"
+        entry: python scripts/check_duplicates.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
+  # === Проверка отсутствия весов в коммите ===
+  - repo: local
+    hooks:
+      - id: forbid-weights
+        name: "🚫 Forbid committing model weights"
+        entry: "Проверка: в коммите не должно быть файлов .pth/.pt/.onnx > 50MB"
+        language: fail
+        files: '\.(pth|pt|onnx|bin|safetensors)$'
+
+  # === Bandit (security) ===
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        name: "🔒 Bandit security check"
+        args: ["-c", "pyproject.toml", "-r", "src/rvc"]
+        additional_dependencies: ["bandit[toml]"]
+        files: ^src/rvc/
+
+  # === Pytest (быстрые тесты) ===
+  - repo: local
+    hooks:
+      - id: pytest-quick
+        name: "🧪 Run quick tests"
+        entry: pytest tests/ -x -q -m "not slow and not gpu and not integration"
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [push]  # Только при git push, не при commit
+
+# Конфигурация для bandit (в pyproject.toml)
+# [tool.bandit]
+# exclude_dirs = ["tests", "infer"]
+# skips = ["B101"]  # assert_used

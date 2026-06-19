@@ -1,0 +1,35 @@
+# Core ML
+torch>=2.5.0
+torchaudio>=2.5.0
+torchvision>=0.20.0
+transformers>=4.45.0
+accelerate>=1.0.0
+
+# Audio processing
+librosa>=0.10.2
+soundfile>=0.12.1
+pyworld>=0.3.4
+praat-parselmouth>=0.4.4
+torchcrepe>=0.0.23
+
+# Vector search
+faiss-cpu>=1.8.0
+
+# UI
+gradio>=5.0.0
+
+# Configuration
+pydantic>=2.9.0
+pydantic-settings>=2.5.0
+python-dotenv>=1.0.1
+
+# Utilities
+numpy>=1.26.0,<2.0.0
+scipy>=1.13.0
+scikit-learn>=1.5.0
+tqdm>=4.66.0
+joblib>=1.4.0
+Pillow>=10.4.0
+
+# Logging
+structlog>=24.4.0
